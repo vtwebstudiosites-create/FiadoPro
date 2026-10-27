@@ -1,3 +1,4 @@
+
 name: Gerar APK FiadoPro
 
 on:
@@ -11,6 +12,7 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
+
     steps:
       - name: Baixar código
         uses: actions/checkout@v4
@@ -21,29 +23,35 @@ jobs:
           distribution: temurin
           java-version: '17'
 
-      - name: Configurar Android SDK
+      - name: Preparar projeto Android
         run: |
+          unzip -o FiadoPro_Android_Projeto.zip
           echo "ANDROID_HOME=/usr/local/lib/android/sdk" >> "$GITHUB_ENV"
           echo "/usr/local/lib/android/sdk/platform-tools" >> "$GITHUB_PATH"
-          echo "/usr/local/lib/android/sdk/cmdline-tools/16.0/bin" >> "$GITHUB_PATH"
 
-      - name: Instalar SDK necessário
+      - name: Encontrar e instalar Android SDK
         run: |
-          yes | sdkmanager --licenses || true
-          sdkmanager "platform-tools" "platforms;android-35" "build-tools;35.0.0"
+          SDKMANAGER="$(find /usr/local/lib/android/sdk/cmdline-tools -type f -name sdkmanager | head -n 1)"
+          if [ -z "$SDKMANAGER" ]; then
+            echo "ERRO: sdkmanager não encontrado"
+            exit 1
+          fi
+          yes | "$SDKMANAGER" --licenses || true
+          "$SDKMANAGER" "platform-tools" "platforms;android-35" "build-tools;35.0.0"
 
       - name: Instalar Gradle
         uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '8.9'
 
-      - name: Compilar APK de teste
+      - name: Compilar APK
+        working-directory: FiadoPro_Android
         run: gradle --no-daemon assembleDebug
 
-      - name: Disponibilizar APK para baixar
+      - name: Disponibilizar APK
         uses: actions/upload-artifact@v4
         with:
           name: FiadoPro-APK-teste
-          path: app/build/outputs/apk/debug/app-debug.apk
+          path: FiadoPro_Android/app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
           retention-days: 7

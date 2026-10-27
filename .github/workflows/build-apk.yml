@@ -44,6 +44,7 @@ jobs:
         with:
           gradle-version: '8.9'
 
+      
       - name: Compilar APK
         run: |
           APP_GRADLE="$(find . -path '*/app/build.gradle.kts' -print -quit)"
@@ -52,17 +53,28 @@ jobs:
             find . -name "build.gradle.kts"
             exit 1
           fi
+
+          python3 - "$APP_GRADLE" <<'PY'
+          import sys
+          from pathlib import Path
+
+          p = Path(sys.argv[1])
+          s = p.read_text()
+          config = '''
+              compileOptions {
+                  sourceCompatibility = JavaVersion.VERSION_17
+                  targetCompatibility = JavaVersion.VERSION_17
+              }
+              kotlinOptions {
+                  jvmTarget = "17"
+              }
+          '''
+          if 'sourceCompatibility = JavaVersion.VERSION_17' not in s:
+              s = s.replace('android {', 'android {\n' + config, 1)
+              p.write_text(s)
+          PY
+
           PROJECT_DIR="$(dirname "$(dirname "$APP_GRADLE")")"
           echo "Projeto encontrado em: $PROJECT_DIR"
           cd "$PROJECT_DIR"
-          gradle --no-daemon assembleDebug \
-            -Pkotlin.compiler.jvmTarget=17 \
-            -Dorg.gradle.java.installations.auto-detect=true
-
-      - name: Disponibilizar APK
-        uses: actions/upload-artifact@v4
-        with:
-          name: FiadoPro-APK-teste
-          path: "**/app/build/outputs/apk/debug/app-debug.apk"
-          if-no-files-found: error
-          retention-days: 7
+          gradle --no-daemon assembleDebug

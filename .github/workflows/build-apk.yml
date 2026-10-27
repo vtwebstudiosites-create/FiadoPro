@@ -25,7 +25,7 @@ jobs:
 
       - name: Preparar projeto Android
         run: |
-          unzip -o FiadoPro_Android_Projeto.zip
+          unzip -o 'FiadoPro_Android.zip..zip'
           echo "ANDROID_HOME=/usr/local/lib/android/sdk" >> "$GITHUB_ENV"
           echo "/usr/local/lib/android/sdk/platform-tools" >> "$GITHUB_PATH"
 

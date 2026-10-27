@@ -44,14 +44,25 @@ jobs:
         with:
           gradle-version: '8.9'
 
+      
       - name: Compilar APK
-        working-directory: FiadoPro_Android
-        run: gradle --no-daemon assembleDebug
+        run: |
+          APP_GRADLE="$(find . -path '*/app/build.gradle.kts' -print -quit)"
+          if [ -z "$APP_GRADLE" ]; then
+            echo "ERRO: não encontrei app/build.gradle.kts"
+            find . -name "build.gradle.kts"
+            exit 1
+          fi
+          PROJECT_DIR="$(dirname "$(dirname "$APP_GRADLE")")"
+          echo "Projeto encontrado em: $PROJECT_DIR"
+          cd "$PROJECT_DIR"
+          gradle --no-daemon assembleDebug
 
       - name: Disponibilizar APK
         uses: actions/upload-artifact@v4
         with:
           name: FiadoPro-APK-teste
-          path: FiadoPro_Android/app/build/outputs/apk/debug/app-debug.apk
+          path: "**/app/build/outputs/apk/debug/app-debug.apk"
           if-no-files-found: error
           retention-days: 7
+

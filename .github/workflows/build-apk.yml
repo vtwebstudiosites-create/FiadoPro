@@ -78,3 +78,10 @@ jobs:
           echo "Projeto encontrado em: $PROJECT_DIR"
           cd "$PROJECT_DIR"
           gradle --no-daemon assembleDebug
+
+      - name: Enviar APK para download
+        uses: actions/upload-artifact@v4
+        with:
+          name: FiadoPro-APK
+          path: "**/build/outputs/apk/debug/*.apk"
+          if-no-files-found: error

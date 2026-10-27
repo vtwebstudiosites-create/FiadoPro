@@ -44,7 +44,6 @@ jobs:
         with:
           gradle-version: '8.9'
 
-      
       - name: Compilar APK
         run: |
           APP_GRADLE="$(find . -path '*/app/build.gradle.kts' -print -quit)"
@@ -56,7 +55,9 @@ jobs:
           PROJECT_DIR="$(dirname "$(dirname "$APP_GRADLE")")"
           echo "Projeto encontrado em: $PROJECT_DIR"
           cd "$PROJECT_DIR"
-          gradle --no-daemon assembleDebug
+          gradle --no-daemon assembleDebug \
+            -Pkotlin.compiler.jvmTarget=17 \
+            -Dorg.gradle.java.installations.auto-detect=true
 
       - name: Disponibilizar APK
         uses: actions/upload-artifact@v4
@@ -65,4 +66,3 @@ jobs:
           path: "**/app/build/outputs/apk/debug/app-debug.apk"
           if-no-files-found: error
           retention-days: 7
-
